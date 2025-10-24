@@ -7,9 +7,6 @@ from .settings import settings
 uri = settings.DATABASE_URL
 
 client = MongoClient(uri, server_api=ServerApi('1'), tlsCAFile=certifi.where())
-
-db = client["socialmediaAPI"]
-
 # Test the connection
 try:
     client.admin.command('ping')
@@ -17,3 +14,12 @@ try:
 except Exception as e:
     print("Error connecting to MongoDB:")
     print(e)
+
+
+db = client["socialmediaAPI"]
+user_collection = db.get_collection("social_media_users")
+otp_collection = db.get_collection("social_media_otp")
+profile_collection = db.get_collection("social_media_user_profiles")
+post_collection = db.get_collection("social_media_posts")
+follower_collection = db.get_collection("social_media_followers")
+

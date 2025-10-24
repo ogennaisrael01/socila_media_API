@@ -1,12 +1,14 @@
 from pydantic import BaseModel, EmailStr, HttpUrl
 from datetime import datetime
 from typing import List
+from bson import ObjectId
 
 class UserBase(BaseModel):
     email: EmailStr
     first_name: str | None = None
     last_name: str | None = None
     username: str | None = None
+    is_verified: bool | None = False
     created_at: datetime = datetime.utcnow()
     
 
@@ -20,10 +22,8 @@ class FollowerModel(BaseModel):
 
 
 class UserResponse(BaseModel):
-    id: str
-    status_code: str
-    email: str
-
+    success: bool
+    result: UserBase
 
 class UserLogin(UserCreate):
     email: EmailStr
@@ -32,15 +32,16 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str
 
+class PasswordResetForm(BaseModel):
+    email: str
+
+class PasswordConfirm(BaseModel):
+    new_password: str
+    confirm_password: str
+
+
 class ToeknData(BaseModel):
     email: EmailStr
-
-
-class ResendOTP(BaseModel):
-    email: EmailStr
-
-class OTPCode(BaseModel):
-    code: int
 
 class UserProfile(BaseModel):
     bio: str | None = None

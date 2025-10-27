@@ -69,7 +69,8 @@ def unfollow_user(
         if unfollow:
             return {
                 "success": True,
-                "message": f"{curr_user_id["username"]} unfollowed {user["username"]}"
+                "message": f"{curr_user_id['username']} unfollowed {user['username']}"
+
             }
         else:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"success": False, "message": "user dosn't exists."})

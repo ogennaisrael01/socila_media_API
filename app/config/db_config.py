@@ -22,4 +22,5 @@ otp_collection = db.get_collection("social_media_otp")
 profile_collection = db.get_collection("social_media_user_profiles")
 post_collection = db.get_collection("social_media_posts")
 follower_collection = db.get_collection("social_media_followers")
-
+likes_collection = db.get_collection("social_media_likes")
+comment_collection= db.get_collection("social_media_comment")

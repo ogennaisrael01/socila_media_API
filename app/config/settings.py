@@ -6,7 +6,7 @@ load_dotenv()
 
 
 class Setting(BaseSettings):
-    DATABASE_URL: str = 'mongodb+srv://ogennaisrael98_db_user:FnR4YwZgRzSmbREm@cluster0.itj4xbo.mongodb.net/test_db'
+    DATABASE_URL: str = ''
     SECRET_KEY: str = "default_secret_key"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: str = "30"

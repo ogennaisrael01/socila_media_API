@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-uri = os.getenv("DATABASE_URL", 'mongodb+srv://ogennaisrael98_db_user:FnR4YwZgRzSmbREm@cluster0.itj4xbo.mongodb.net/test_db')
+uri = 'mongodb+srv://ogennaisrael98_db_user:FnR4YwZgRzSmbREm@cluster0.itj4xbo.mongodb.net/test_db'
 
 client = MongoClient(uri, server_api=ServerApi('1'), tlsCAFile=certifi.where())
 # Test the connection

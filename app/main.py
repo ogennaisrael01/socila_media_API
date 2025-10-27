@@ -27,7 +27,7 @@ app.add_middleware(
 )
 
 
-@app.get("/health")
+@app.get("/")
 async def homepage():
     return {
         "status": status.HTTP_200_OK,

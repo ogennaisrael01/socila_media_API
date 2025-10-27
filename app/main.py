@@ -27,7 +27,7 @@ app.add_middleware(
 async def homepage():
     return {
         "status": status.HTTP_200_OK,
-        "message": "Welcome to my homepage, world"
+        "message": "Welcome to Easy connect, world"
     }
 
 

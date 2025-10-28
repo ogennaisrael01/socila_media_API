@@ -1,5 +1,5 @@
 from fastapi import FastAPI, status, HTTPException
-from app.routes import user_route, profile_route, following_route, post_route, likes_route, comment_route
+from app.routes import user_route, profile_route, following_route, post_route, likes_route, comment_route, notifications_route
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import os
@@ -53,3 +53,4 @@ app.include_router(following_route.router, prefix="/api/v1")
 app.include_router(post_route.router, prefix="/api/v1")
 app.include_router(likes_route.router, prefix="/api/v1")
 app.include_router(comment_route.router, prefix="/api/v1")
+app.include_router(notifications_route.router, prefix="/api/v1")

@@ -1,4 +1,4 @@
-from fastapi import status, Depends, HTTPException, APIRouter
+from fastapi import status, Depends, HTTPException, APIRouter, BackgroundTasks
 from bson import ObjectId
 from ..models.comment_models import Comment, UpdateForm
 from typing import Annotated
@@ -9,12 +9,14 @@ from fastapi.encoders import jsonable_encoder
 from pymongo.errors import PyMongoError
 from datetime import datetime
 from pymongo import ReturnDocument
+from ..utils.notification_utils import notification_create
+from ..models.notification_models import NotificationType
 
 router = APIRouter(tags=["Comment Management"])
 
 
 @router.post("/comment", status_code=status.HTTP_200_OK)
-async def add_comment(post_id: str, comment_form: Comment, current_user: str = Depends(get_current_user)):
+async def add_comment(post_id: str, comment_form: Comment, background_tasks: BackgroundTasks, current_user: str = Depends(get_current_user)):
     try:
         user = get_user_byEmail(email=current_user)
         post = get_post_byId(post=post_id)
@@ -27,6 +29,13 @@ async def add_comment(post_id: str, comment_form: Comment, current_user: str = D
     })
     
     add_comment = comment_collection.insert_one(convert_to_dict)
+    if add_comment.inserted_id:
+          background_tasks.add_task(
+                notification_create,
+                sender= str(user["_id"]),
+                reciever=str(post["user_id"]),
+                notification_type=NotificationType.COMMENT
+        )
     return {
         "success": True,
         "id": str(add_comment.inserted_id)
@@ -118,7 +127,7 @@ def delete_comment(comment_id: str, current_user: str = Depends(get_current_user
 
 
 @router.post("/comment/reply", status_code=status.HTTP_201_CREATED)
-def reply_to_comment(comment_id: str, reply_form: Comment, current_user: str = Depends(get_current_user)):
+def reply_to_comment(comment_id: str, reply_form: Comment, background_tasks: BackgroundTasks, current_user: str = Depends(get_current_user)):
     comment = retrieve_comment(comment_id, current_user)
     user = get_user_byEmail(email=current_user)
     try:
@@ -131,7 +140,13 @@ def reply_to_comment(comment_id: str, reply_form: Comment, current_user: str = D
         reply = comment_collection.insert_one(convert_to_dict)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": False, "message": f"Errro: {e}"})
-    
+    if reply.inserted_id:
+         background_tasks.add_task(
+                notification_create,
+                sender= str(user["_id"]),
+                reciever=str(comment["user_id"]),
+                notification_type=NotificationType.REPLY
+        )
     return {
         "success": True,
         "id": str(reply.inserted_id)

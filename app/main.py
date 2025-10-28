@@ -3,7 +3,6 @@ from app.routes import user_route, profile_route, following_route, post_route, l
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import os
-
 app = FastAPI()
 
 # Path to the favicon.ico file

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status,  Path, Depends, HTTPException
+from fastapi import APIRouter, status,  Depends, HTTPException, BackgroundTasks
 from typing import Annotated
 from app.utils.helper_functions import get_users
 from app.utils.security import get_current_user
@@ -8,6 +8,8 @@ from app.models.user_models import FollowerModel, UserResponse
 from bson import ObjectId
 from datetime import datetime
 from .user_route import get_user_byId, get_user_byEmail
+from ..utils.notification_utils import notification_create
+from ..models.notification_models import NotificationType
 from pymongo.errors import PyMongoError
 from ..config.db_config import (
     user_collection,
@@ -20,9 +22,10 @@ router = APIRouter(
 )
 
 @router.post("/follow/{user}", status_code=status.HTTP_200_OK)
-def follow_user(
+def follow_user(*,
     user: Annotated[dict, ...] = Depends(get_user_byId),
-    current_user: Annotated[str, ...] = Depends(get_current_user)):
+    current_user: Annotated[str, ...] = Depends(get_current_user),
+    background_tasks: BackgroundTasks):
 
     if user["email"] == current_user:
         raise HTTPException(status_code= status.HTTP_400_BAD_REQUEST, detail={"success": False, "message": "You can't follow yourself"})
@@ -47,6 +50,14 @@ def follow_user(
     form_data["followed_on"] = datetime.now()
     
     save = follower_collection.insert_one(form_data)
+    if save.inserted_id:
+        "send Nofit"
+        background_tasks.add_task(
+            notification_create,
+            sender= str(curr_user["_id"]),
+            reciever=str(user["_id"]),
+            notification_type=NotificationType.FOLLOW
+        )
 
     return {
         "success": True,
@@ -55,6 +66,7 @@ def follow_user(
 
 @router.delete("/unfollow/{user}", status_code=status.HTTP_200_OK)
 def unfollow_user(
+    background_tasks: BackgroundTasks,
     user: Annotated[dict, ...] = Depends(get_user_byId),
     current_user: Annotated[str, ...] = Depends(get_current_user)
 ):
@@ -67,6 +79,12 @@ def unfollow_user(
             "followed": ObjectId(user["_id"])
         })
         if unfollow:
+            background_tasks.add_task(
+                notification_create,
+                sender= str(curr_user_id["_id"]),
+                reciever=str(user["_id"]),
+                notification_type=NotificationType.UNFOLLOW
+        )
             return {
                 "success": True,
                 "message": f"{curr_user_id['username']} unfollowed {user['username']}"

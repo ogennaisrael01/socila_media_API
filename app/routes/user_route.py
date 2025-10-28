@@ -13,6 +13,7 @@ from ..config.settings import settings
 from datetime import datetime, timedelta
 from pymongo.collection import ReturnDocument
 from ..utils.email_utility import verification_email, send_updated_verification, password_reset_email
+from ..utils.cloudinary_utils import upload_image
 from ..config.db_config import (
     user_collection,
     profile_collection
@@ -20,7 +21,8 @@ from ..config.db_config import (
 
 logging.basicConfig(level=logging.INFO)
 router = APIRouter(
-    tags=["Authentication and profile management"]
+    tags=["Authentication and profile management"],
+    prefix="/auth"
 )
 
 SECRET_KEY = settings.SECRET_KEY
@@ -195,7 +197,7 @@ def confirm_password_reset(token: str, form: user_models.PasswordConfirm, backgr
 }
 
  
-@router.get("/profile", status_code=status.HTTP_200_OK)
+@router.get("/me", status_code=status.HTTP_200_OK)
 def profile(email: str = Depends(get_current_user)):
     user = user_collection.find_one({"email": email})
     if not user:
@@ -212,7 +214,7 @@ def profile(email: str = Depends(get_current_user)):
     encode_profile = jsonable_encoder(profile_data, custom_encoder={ObjectId: str, datetime:str})
     return get_profile_data(user=return_user_data, profile=encode_profile)
 
-@router.get("user/{user}")
+@router.get("/user/{user}")
 def get_user_byId(user: str, current_user: str = Depends(get_current_user)):
     try:
         user = user_collection.find_one({"_id": ObjectId(user)})
@@ -225,7 +227,7 @@ def get_user_byId(user: str, current_user: str = Depends(get_current_user)):
         raise  HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={'success': False, "message": f"Error: {e}"})
 
 
-@router.get("user/{email}")
+@router.get("/user/{email}")
 def get_user_byEmail(email:str = Depends(get_current_user)):
     try:
         user = user_collection.find_one({"email": email})
@@ -236,3 +238,33 @@ def get_user_byEmail(email:str = Depends(get_current_user)):
     except Exception as e:
         logging.error(f"Error occured while retrieving user info by id: {e}")
         raise  HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={'success': False, "message": f"Error: {e}"})
+    
+@router.put("/me/update", response_model=user_models.UserResponse)
+def updete_info(*, current_user: str = Depends(get_current_user), update_form: user_models.UserCreate):
+    user = get_user_byEmail(email=current_user)
+    try:
+        convert_to_dict = update_form.model_dump(exclude_unset=True)
+        convert_to_dict["updated_at"] = datetime.now()
+        user_update = user_collection.find_one_and_update({"_id": user["_id"], "email": user["email"]}, {"$set": convert_to_dict}, return_document=ReturnDocument.AFTER)
+    except Exception or PyMongoError as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": False, "message": f"Error: {e}"})
+
+    encoed_user_info = jsonable_encoder(user_update, custom_encoder={ObjectId:ste, datetime: str})
+
+    return {
+        "success": True,
+        "result": encoed_user_info
+    }
+
+@router.post("/upload-avatar", status_code=status.HTTP_200_OK)
+def upload_image(image_url: user_models.UploadImage, current_user: str = Depends(get_current_user)):
+    user = get_user_byEmail(email=current_user)
+    try:
+        upload_to_clodinary = upload_image(image_url)
+        save_to_db = user_collection.update_one({"_id": user["_id"], "email": user["email"]}, {"$set": {"image_url": image_url}})
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": False, "message": f"{e}"})
+    return {
+        "success": True,
+        "secure_url": upload_to_clodinary.get("secure_url")
+    }

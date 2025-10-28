@@ -114,3 +114,40 @@ def delete_comment(comment_id: str, current_user: str = Depends(get_current_user
         do_delete = comment_collection.delete_one({'_id': ObjectId(comment_id), "user_id": user["_id"]})
     except Exception or PyMongoError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={'success': False, 'message': f"{e}"})
+
+
+
+@router.post("/comment/reply", status_code=status.HTTP_201_CREATED)
+def reply_to_comment(comment_id: str, reply_form: Comment, current_user: str = Depends(get_current_user)):
+    comment = retrieve_comment(comment_id, current_user)
+    user = get_user_byEmail(email=current_user)
+    try:
+        convert_to_dict = reply_form.model_dump()
+        convert_to_dict.update({
+            "user_id": user["_id"],
+            "post_id": comment["post_id"],
+            "comment_id": comment["_id"]
+        })
+        reply = comment_collection.insert_one(convert_to_dict)
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": False, "message": f"Errro: {e}"})
+    
+    return {
+        "success": True,
+        "id": str(reply.inserted_id)
+    }
+
+
+@router.get("/comment/replies", status_code=status.HTTP_200_OK)
+def get_replies(comment_id: str, current_user: str = Depends(get_current_user)):
+    try:
+        replies = list(comment_collection.find({"comment_id": ObjectId(comment_id)}))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={"success": True, "message": f"Error occured while retriving comment: {e}"})
+    
+    encode_replies = jsonable_encoder(replies, custom_encoder={ObjectId:str, datetime:str})
+
+    return {
+        "success":True,
+        "replies": encode_replies
+    }

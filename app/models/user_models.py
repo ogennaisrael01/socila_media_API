@@ -58,3 +58,7 @@ class UserProfileResponse(BaseModel):
     profile_picture: str | None = None
     location: str | None = None
     updated_at: datetime = datetime.now()
+
+
+class UploadImage(BaseModel):
+    image_url: str 

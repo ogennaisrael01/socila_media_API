@@ -4,7 +4,7 @@ from app.utils.security import get_current_user
 from app.models.likes_models import Like
 from bson import ObjectId
 from fastapi.encoders import jsonable_encoder
-import datetime
+from datetime import datetime
 from app.config.db_config import post_collection, likes_collection
 
 router = APIRouter(tags=["Likes"])
@@ -36,4 +36,27 @@ def unlike_post(post_id: str, current_user: str = Depends(get_current_user)):
 
     unlike = likes_collection.find_one_and_delete({"user_id": str(user["_id"]), "post_id": post_id})
     return jsonable_encoder(unlike, custom_encoder={ObjectId: str, datetime: str})
+
+@router.get("/like-counts")
+def like_counts(post_id: str, current_user: str = Depends(get_current_user)):
+    posts = get_post_byId(post=post_id, current_user=current_user)
+    try:
+        get_likes_count = list(likes_collection.aggregate([
+            {
+                "$match": {"post_id": str(posts["_id"])}
+            },
+            {
+                "$count": "LIkes Count"
+            }
+        ]))
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={'success': False, "message": f"Error occred while getting like counts: {e}"})
+
+    encoded_post = jsonable_encoder(posts, custom_encoder={ObjectId: str, datetime: str})
+    return {
+        "success": True,
+        "posts": encoded_post,
+        "likes": get_likes_count
+    }
+  
 

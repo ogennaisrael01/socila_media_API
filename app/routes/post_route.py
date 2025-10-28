@@ -164,8 +164,8 @@ def get_post_byId(post: str, current_user:str = Depends(security.get_current_use
         })
         if posts:
             return posts
-        else:
-            return [] or "No Posts"
+        # else:
+        #     return [] or "No Posts"
     except  PyMongoError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detaial={"success": False, "message": f"Error fetching posts! {e}"})
     except Exception as e:
@@ -210,6 +210,19 @@ def delete_post(post_id: str, current_user: str = Depends(security.get_current_u
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": False, "message": f"Error deleting post {e}"})
     return {
         "success": True
+    }
+
+@router.get("/users/{user_id}/posts")
+def get_users_post(user_id: str, current_user:str = Depends(security.get_current_user)):
+    user = get_user_byId(user=user_id, current_user=current_user)
+    posts = list(post_collection.find({"user_id": user["_id"]}).sort("created_at", -1))
+    if not posts:
+        return [] or "No available posts"
+    
+    encode_posts = jsonable_encoder(posts, custom_encoder={ObjectId:str, datetime:str})
+    return {
+        "success": True,
+        "posts": encode_posts
     }
 
 @router.post("/upload")

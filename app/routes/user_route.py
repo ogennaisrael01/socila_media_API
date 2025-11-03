@@ -249,7 +249,7 @@ def updete_info(*, current_user: str = Depends(get_current_user), update_form: u
     except Exception or PyMongoError as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail={"success": False, "message": f"Error: {e}"})
 
-    encoed_user_info = jsonable_encoder(user_update, custom_encoder={ObjectId:ste, datetime: str})
+    encoed_user_info = jsonable_encoder(user_update, custom_encoder={ObjectId:str, datetime: str})
 
     return {
         "success": True,

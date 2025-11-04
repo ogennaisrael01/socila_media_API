@@ -10,7 +10,7 @@ class Setting(BaseSettings):
     SECRET_KEY: str = "default_secret_key"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: str = "30"
-    BASE_URL: str = "https://easyconnect-mu.vercel.app/"
+    BASE_URL: str = "https://easyconnect-mu.vercel.app"
     CLOUDINARY_CLOUD_NAME: str = ""
     CLOUDINARY_API_KEY: str = ""
     CLOUDINARY_API_SECRET: str = ""

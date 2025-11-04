@@ -182,38 +182,37 @@ def delete_chat(user_id: str, chat_id: str, current_user: str = Depends(get_curr
             "message": "unable to delete message"
         })
 
-@router.get("/users/chats", status_code=status.HTTP_200_OK)
-def get_users(current_user: str = Depends(get_current_user)):
-    user = get_user_byEmail(email=current_user)
+
+
+def generate_unique_users(user):
+    seen = set()
     chats = message_collection.find({
         "$or": [
             {"sender": user["_id"]},
             {"reciever": user["_id"]}
         ]
     })
+
     for chat in chats:
         list_chats = list(user_collection.find({
-                    "$or": [
-                        {"_id": chat["sender"]},
-                       { "_id": chat["reciever"]}
-                    ]
-                 
+            "$or": [
+                {"_id": chat["sender"]},
+                {"_id": chat["reciever"]}
+            ]
         }))
-        if not list_chats:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail={
-                "success": False, 
-                "message": "Chats not listed"
-            })
+
         for user in list_chats:
-            encode_data = jsonable_encoder(user, custom_encoder={ObjectId: str, datetime:str}) 
-            yield {
-                "success": True,
-                "result": {
-                    "user_id": encode_data["_id"],
-                    "email": encode_data["email"],
-                    "username": encode_data["username"],
-                    "is_verified": encode_data["is_verified"]
-                }
-            }
-            
-            
+            user_id = str(user["_id"])
+            if user_id not in seen:
+                seen.add(user_id)
+                encode_data = jsonable_encoder(user, custom_encoder={ObjectId: str, datetime: str})
+                yield encode_data
+
+@router.get("/users/chats")
+def get_users(current_user: str = Depends(get_current_user)):
+    user = get_user_byEmail(email=current_user)
+    data = [
+        {"id": u["_id"], "email": u["email"], "username": u["username"]}
+        for u in generate_unique_users(user)
+    ]
+    return {"success": True, "data": data}

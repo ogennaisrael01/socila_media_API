@@ -4,13 +4,13 @@ from dotenv import load_dotenv
 import aiosmtplib
 import logging
 load_dotenv()
-
+from ..config.settings import settings
 logging.basicConfig(level=logging.INFO)
 
-EMAIL_HOST = os.getenv("EMAIL_HOST")
-EMAIL_PORT = os.getenv("EMAIL_PORT")
-EMAIL_PASS = os.getenv("EMAIL_PASS")
-EMAIL_USER = os.getenv("EMAIL_USER")
+EMAIL_HOST = settings.EMAIL_HOST
+EMAIL_PORT = settings.EMAIL_PORT
+EMAIL_PASS = settings.EMAIL_PASS
+EMAIL_USER = settings.EMAIL_USER
 
 
 async def send_email(subjet: str, email:str, body:str):

@@ -10,6 +10,7 @@ import logging
 from datetime import datetime
 from pymongo import ReturnDocument
 from ..utils.helper_functions import get_users
+from ..models.user_models import UserResponse
 
 logging.basicConfig(level=logging.basicConfig)
 logger = logging.getLogger(__name__)
@@ -203,9 +204,16 @@ def get_users(current_user: str = Depends(get_current_user)):
                 "success": False, 
                 "message": "Chats not listed"
             })
-
         for user in list_chats:
-            encode_data = jsonable_encoder(user, custom_encoder={ObjectId: str, datetime:str})
-            print (encode_data)
-            # users = get_users(encode_data)
-            # print(users)
+            encode_data = jsonable_encoder(user, custom_encoder={ObjectId: str, datetime:str}) 
+            yield {
+                "success": True,
+                "result": {
+                    "user_id": encode_data["_id"],
+                    "email": encode_data["email"],
+                    "username": encode_data["username"],
+                    "is_verified": encode_data["is_verified"]
+                }
+            }
+            
+            

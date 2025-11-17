@@ -51,10 +51,10 @@ async def homepage():
         "status": status.HTTP_200_OK,
         "message": "Welcome to Easy connect, world",
         "Project_urls": {
-            "docs": f"{settings.BASE_URL}/docs",
-            "auth": f"{settings.BASE_URL}/api/v1/auth",
-            "profile": f"{settings.BASE_URL}/api/v1/accounts",
-            "posts": f"{settings.BASE_URL}/api/v1/posts",
+            "docs": f"{settings.BASE_URL}docs",
+            "auth": f"{settings.BASE_URL}api/v1/auth",
+            "profile": f"{settings.BASE_URL}api/v1/accounts",
+            "posts": f"{settings.BASE_URL}api/v1/posts",
 
         }
     }

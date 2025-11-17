@@ -15,7 +15,8 @@ from ..config.db_config import (
     profile_collection 
 )
 router = APIRouter(
-    tags=["Profile Management"]
+    tags=["Profile Management"],
+    prefix="/account"
 )
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

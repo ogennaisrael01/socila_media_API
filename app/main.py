@@ -14,6 +14,7 @@ from fastapi.responses import FileResponse
 import os
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from .utils.apshedular import starter, send_notif
+from .config.settings import settings
 
 app = FastAPI()
 shedular = AsyncIOScheduler()
@@ -48,7 +49,14 @@ app.add_middleware(
 async def homepage():
     return {
         "status": status.HTTP_200_OK,
-        "message": "Welcome to Easy connect, world"
+        "message": "Welcome to Easy connect, world",
+        "Project_urls": {
+            "docs": f"{settings.BASE_URL}/docs",
+            "auth": f"{settings.BASE_URL}/api/v1/auth",
+            "profile": f"{settings.BASE_URL}/api/v1/accounts",
+            "posts": f"{settings.BASE_URL}/api/v1/posts",
+
+        }
     }
 
 @app.on_event("shutdown")

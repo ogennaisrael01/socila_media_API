@@ -15,7 +15,4 @@ A modern, scalable RESTful API for a social media platform, built with FastAPI a
 
 - **Following System**
   - Follow and unfollow users
-  - List followers and following
-
-
-  Still in progress
+  - List followers and followiing

@@ -21,7 +21,8 @@ from ..config.db_config import (
 
 logging.basicConfig(level=logging.INFO)
 router = APIRouter(
-    tags=["Authentication and profile management"]
+    tags=["Authentication and profile management"],
+    prefix='/auth'
 )
 
 SECRET_KEY = settings.SECRET_KEY
